@@ -4,7 +4,7 @@ Massive improvement in the background. I'm not using txt anymore for storing dat
 Changelog
 =
 11/06/2021
-==
+===
 What's New:
 - Create add feature
 - Create delete feature
@@ -12,6 +12,7 @@ What's New:
 - Create ping feature
 - Create update feature
 
-Plan:
-- Create brand new help menu using cogs
-- Many more!
+11/06/2021
+===
+What's New:
+- Create reminder feature
