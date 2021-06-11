@@ -12,7 +12,7 @@ What's New:
 - Create ping feature
 - Create update feature
 
-11/06/2021
+12/06/2021
 ===
 What's New:
 - Create reminder feature
