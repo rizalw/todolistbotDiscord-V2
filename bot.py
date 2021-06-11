@@ -88,6 +88,32 @@ async def add(ctx, nama, tanggal, waktu):
         await msg.delete()
 
 @client.command()
+async def update(ctx, target, choice, newdata):
+    try:
+        with connect(
+            host="localhost",
+            user="root",
+            database ="todolistbot",
+        ) as connection:
+            if choice == "nama":
+                alter_query = "UPDATE task SET nama = '{}' where id = {};".format(newdata, target)
+            elif choice == "tanggal":
+                alter_query = "UPDATE task SET tanggal = '{}' where id = {};".format(newdata, target)
+            elif choice == "waktu":
+                alter_query = "UPDATE task SET waktu = '{}' where id = {};".format(newdata, target)
+            with connection.cursor() as cursor:
+                cursor.execute(alter_query)
+                connection.commit()
+            
+    except Error as e:
+        print(e)
+        await ctx.send("Update Gagal")
+    else:
+        msg = await ctx.send("Data telah diupdate")
+        time.sleep(5)
+        await msg.delete()
+
+@client.command()
 async def delete(ctx, id):
     try:
         with connect(
