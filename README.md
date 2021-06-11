@@ -1,6 +1,8 @@
 # todolistbotDiscord-V2
 Massive improvement in the background. I'm not using txt anymore for storing data
 
+If you don't know what this apps do. Basicly it's a todolist discord bot than run on python. 
+
 Changelog
 =
 11/06/2021
