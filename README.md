@@ -10,8 +10,8 @@ What's New:
 - Create delete feature
 - Create clear feature
 - Create ping feature
+- Create update feature
 
 Plan:
-- Create update feature
 - Create brand new help menu using cogs
 - Many more!
