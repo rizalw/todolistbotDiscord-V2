@@ -4,7 +4,7 @@ import os
 
 client = commands.Bot(command_prefix = "t!", help_command=None)
 
-Token = "ODI1MzQ0ODM5MDQ1NzQyNjMy.YF8kRw.cxUwSYewiEs46AUQr9TZnT9vaNI"
+Token = "YOUR TOKEN"
 
 @client.event
 async def on_ready():
