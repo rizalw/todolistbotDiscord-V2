@@ -1,8 +1,9 @@
-from discord.ext import commands
+from discord.ext import commands, tasks
 import discord 
 from mysql.connector import connect, Error
+from datetime import datetime, time, timedelta
+import asyncio
 import time
-
 
 client = commands.Bot(command_prefix = "t!", help_command=None)
 
@@ -51,7 +52,6 @@ async def all(ctx):
             with connection.cursor() as cursor:
                 cursor.execute(all_query)
                 result = cursor.fetchall()
-            print(len(result))
     except Error as e:
         await ctx.send("```Data masih kosong```")
         print(e)
@@ -60,9 +60,17 @@ async def all(ctx):
             await ctx.send("```Data masih kosong```")
         else:
             count = 1
+            await ctx.send("**LIST OF REMAINING TASKS**")
             for content in result:
+                tanggalwaktu_deadline = content[2] + " " + content[3]
+                tanggalwaktu_deadline = datetime.strptime(tanggalwaktu_deadline, '%d/%m/%Y %H:%M:%S')
+                tanggalwaktu_sekarang = datetime.now()
+                sisa = str(tanggalwaktu_deadline - tanggalwaktu_sekarang).split()
+                sisa_hari = sisa[0] + " " + sisa[1]
+                sisa_waktu = sisa[2][0:8]
                 await ctx.send("**" + "Task " + str(count) + "**\t(id=" + str(content[0]) + ")")
-                await ctx.send("```Nama\t\t\t\t\t\t\t: {}\nTanggal Deadline\t\t\t\t: {}\nWaktu Deadline\t\t\t\t  : {}```".format(content[1], content[2], content[3]))
+                await ctx.send("```Nama\t\t\t\t\t\t\t: {}\nTanggal Deadline\t\t\t\t: {}\nWaktu Deadline\t\t\t\t  : {}\nSisa Waktu\t\t\t\t\t  : {}```"\
+                    .format(content[1], content[2], content[3], (sisa_hari + " " + sisa_waktu)))
                 count += 1
 
 @client.command()
@@ -144,4 +152,50 @@ async def clear(ctx, amount=100):
     time.sleep(5)
     await msg.delete()
 
-client.run(Token)
+async def reminder():
+    await client.wait_until_ready()  # Make sure your guild cache is ready so the channel can be found via get_channel
+    ctx = client.get_channel(828984053700362261) # Note: It's more efficient to do bot.get_guild(guild_id).get_channel(channel_id) as there's less looping involved, but just get_channel still works fine
+    try:
+        with connect(
+            host="localhost",
+            user="root",
+            database ="todolistbot",
+        ) as connection:
+            all_query = "SELECT * FROM task ORDER BY id ASC;"
+            with connection.cursor() as cursor:
+                cursor.execute(all_query)
+                result = cursor.fetchall()
+            print(len(result))
+    except Error as e:
+        await ctx.send("```Data masih kosong```")
+        print(e)
+    else:
+        if len(result) == 0:
+            await ctx.send("```Data masih kosong```")
+        else:
+            count = 1
+            await ctx.send("**REMAINDER!!!**")
+            for content in result:
+                await ctx.send("**" + "Task " + str(count) + "**\t(id=" + str(content[0]) + ")")
+                await ctx.send("```Nama\t\t\t\t\t\t\t: {}\nTanggal Deadline\t\t\t\t: {}\nWaktu Deadline\t\t\t\t  : {}```".format(content[1], content[2], content[3]))
+                count += 1
+
+async def background_task():
+    now = datetime.now()
+    if now.time() > time(7, 0, 0):  # Make sure loop doesn't start after {WHEN} as then it will send immediately the first time as negative seconds will make the sleep yield instantly
+        tomorrow = datetime.combine(now.date() + timedelta(days=1), time(0))
+        seconds = (tomorrow - now).total_seconds()  # Seconds until tomorrow (midnight)
+        await asyncio.sleep(seconds)   # Sleep until tomorrow and then the loop will start 
+    while True:
+        now = datetime.now() # You can do now() or a specific timezone if that matters, but I'll leave it with utcnow
+        target_time = datetime.combine(now.date(), time(7, 0, 0))  # 6:00 PM today (In UTC)
+        seconds_until_target = (target_time - now).total_seconds()
+        await asyncio.sleep(seconds_until_target)  # Sleep until we hit the target time
+        await reminder()  # Call the helper function that sends the message
+        tomorrow = datetime.combine(now.date() + timedelta(days=1), time(0))
+        seconds = (tomorrow - now).total_seconds()  # Seconds until tomorrow (midnight)
+        await asyncio.sleep(seconds)   # Sleep until tomorrow and then the loop will start a new iteration
+
+if __name__ == "__main__":
+    client.loop.create_task(background_task())
+    client.run(Token)
