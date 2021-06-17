@@ -25,3 +25,4 @@ What's New:
 What's New:
 - New reaction feature!!! 
 (You dont have to write t!delete anymore to delete task, just use reaction that will be available everytime you send t!all)
+- A bug fixed (It appear when remaining time below 1 days)
