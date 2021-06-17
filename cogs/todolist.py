@@ -122,20 +122,24 @@ class todolist(commands.Cog):
                 user="root",
                 database ="todolistbot",
             ) as connection:
-                add_task_query = """
-            INSERT INTO task (nama, tanggal, waktu) VALUES 
-            ("{}", "{}", "{}");""".format(nama, tanggal, waktu)
                 with connection.cursor() as cursor:
-                    cursor.execute(add_task_query)
-                    connection.commit()
+                    check_query = "SELECT nama FROM task WHERE nama = '{}' AND tanggal = '{}' AND waktu = '{}' ;".format(nama, tanggal, waktu)
+                    cursor.execute(check_query)
+                    result = cursor.fetchall()
+                    if result:
+                        await ctx.send("Data sudah pernah dimasukkan, jika ingin mengubah silahkan gunakan t!update sesuai dengan panduan di dalam t!help")
+                    else:
+                        add_task_query = """
+                    INSERT INTO task (nama, tanggal, waktu) VALUES 
+                    ("{}", "{}", "{}");""".format(nama, tanggal, waktu)
+                        cursor.execute(add_task_query)
+                        connection.commit()
+                        await ctx.send("Data telah dimasukkan")
+
         except Error as e:
             print(e)
             await ctx.send("Input Gagal")
-        else:
-            msg = await ctx.send("Data telah dimasukkan")
-            time.sleep(5)
-            await msg.delete()
-
+            
     @commands.command()
     async def update(self, ctx, target, choice, newdata):
         try:
@@ -158,9 +162,7 @@ class todolist(commands.Cog):
             print(e)
             await ctx.send("Update Gagal")
         else:
-            msg = await ctx.send("Data telah diupdate")
-            time.sleep(5)
-            await msg.delete()
+            await ctx.send("Data telah diupdate")
 
     @commands.command()
     async def delete(ctx, id):
@@ -178,9 +180,7 @@ class todolist(commands.Cog):
             print(e)
             await ctx.send("Hapus Gagal")
         else:
-            msg = await ctx.send("Data telah dihapus")
-            time.sleep(5)
-            await msg.delete()
+            await ctx.send("Data telah dihapus")
 
     @commands.command()
     async def clear(self, ctx, amount=100):
