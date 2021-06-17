@@ -25,4 +25,5 @@ What's New:
 What's New:
 - New reaction feature!!! 
 (You dont have to write t!delete anymore to delete task, just use reaction that will be available everytime you send t!all)
-- A bug fixed (It appear when remaining time below 1 days)
+- User cant add the same task anymore (It means user can't add new task that already inserted before. Bot will compare title, date and time to every task in database)
+- A bug fixed (It appears when the remaining time below 1 days)
