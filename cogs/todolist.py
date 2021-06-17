@@ -10,6 +10,39 @@ class todolist(commands.Cog):
         self.client = client
         self.client.loop.create_task(self.background_task())
 
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction, user):
+        channel = reaction.message.channel
+        emoji = str(reaction.emoji)
+        if user.bot:
+            return
+
+        if emoji == "<:deletesign:853677705861267456>" and str(reaction.message.author) == "MyTodoList#7809":
+            data = str(reaction.message.content).split("\n")
+            for x in range(len(data)):
+                data[x] = data[x].split(": ")
+            print(data)
+            try:
+                with connect(
+                    host="localhost",
+                    user="root",
+                    database ="todolistbot",
+                ) as connection:
+                    search_query = "DELETE FROM task WHERE nama = '{}' AND tanggal = '{}' AND waktu = '{}' ;"\
+                        .format(data[0][1], data[1][1], data[2][1])
+                    with connection.cursor() as cursor:
+                        cursor.execute(search_query)
+                        connection.commit()
+            except Error as e:
+                await channel.send("```Data masih kosong```")
+                print(e)
+            else:
+                msg = await channel.send("```Data berhasil dihapus```")
+                time.sleep(5)
+                await msg.delete()
+        else:
+            print("Gagal")
+
     @commands.command()
     async def help(self, ctx):
         context = """```List of Commands!
@@ -34,7 +67,11 @@ class todolist(commands.Cog):
 
     @commands.command()
     async def ping(self, ctx):
-        await ctx.send(str(round(self.client.latency * 100)) + "ms")
+        # await ctx.send(str(round(self.client.latency * 100)) + "ms")
+        ping = str(round(self.client.latency * 100)) + " ms"
+        embed=discord.Embed(color=0xff0000)
+        embed.add_field(name="Ping " + str(ctx.author), value=ping, inline=False)
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def all(self, ctx):
@@ -62,12 +99,20 @@ class todolist(commands.Cog):
                     tanggalwaktu_deadline = datetime.datetime.strptime(tanggalwaktu_deadline, '%d/%m/%Y %H:%M:%S')
                     tanggalwaktu_sekarang = datetime.datetime.now()
                     sisa = str(tanggalwaktu_deadline - tanggalwaktu_sekarang).split()
-                    sisa_hari = sisa[0] + " " + sisa[1]
-                    sisa_waktu = sisa[2][0:8]
-                    await ctx.send("**" + "Task " + str(count) + "**\t(id=" + str(content[0]) + ")")
-                    await ctx.send("```Nama\t\t\t\t\t\t\t: {}\nTanggal Deadline\t\t\t\t: {}\nWaktu Deadline\t\t\t\t  : {}\nSisa Waktu\t\t\t\t\t  : {}```"\
-                        .format(content[1], content[2], content[3], (sisa_hari + " " + sisa_waktu)))
+                    if len(sisa) == 1:
+                        sisa_waktu = sisa[0][0:8]
+                        await ctx.send("**" + "Task " + str(count) + "**\t(id=" + str(content[0]) + ")")
+                        data = await ctx.send("```Nama\t\t\t\t\t\t\t: {}\nTanggal Deadline\t\t\t\t: {}\nWaktu Deadline\t\t\t\t  : {}\nSisa Waktu\t\t\t\t\t  : {}```"\
+                            .format(content[1], content[2], content[3], sisa_waktu))
+                    else:
+                        sisa_hari = sisa[0] + " " + sisa[1]
+                        sisa_waktu = sisa[2][0:8]
+                        await ctx.send("**" + "Task " + str(count) + "**\t(id=" + str(content[0]) + ")")
+                        data = await ctx.send("```Nama\t\t\t\t\t\t\t: {}\nTanggal Deadline\t\t\t\t: {}\nWaktu Deadline\t\t\t\t  : {}\nSisa Waktu\t\t\t\t\t  : {}```"\
+                            .format(content[1], content[2], content[3], (sisa_hari + " " + sisa_waktu)))
                     count += 1
+                    emoji = "<:deletesign:853677705861267456>"
+                    await data.add_reaction(emoji)
 
     @commands.command()
     async def add(self, ctx, nama, tanggal, waktu):
@@ -179,7 +224,7 @@ class todolist(commands.Cog):
     async def background_task(self):
         now = datetime.datetime.now()
         if now.time() > datetime.time(7, 0, 0):  # Make sure loop doesn't start after {WHEN} as then it will send immediately the first time as negative seconds will make the sleep yield instantly
-            tomorrow = datetime.datetime.combine(now.date() + datetime.timedelta(days=1), time(0))
+            tomorrow = datetime.datetime.combine(now.date() + datetime.timedelta(days=1), datetime.time(0))
             seconds = (tomorrow - now).total_seconds()  # Seconds until tomorrow (midnight)
             await asyncio.sleep(seconds)   # Sleep until tomorrow and then the loop will start 
         while True:
