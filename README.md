@@ -19,3 +19,9 @@ What's New:
 What's New:
 - Create reminder feature
 - Cogs!!!
+
+17/06/2021
+===
+What's New:
+- New reaction feature!!! 
+(You dont have to write t!delete anymore to delete task, just use reaction that will be available everytime you send t!all)
