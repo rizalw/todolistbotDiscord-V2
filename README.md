@@ -33,3 +33,4 @@ What's New:
 What's New:
 - Another server can't see the task that inserted from another server (e.g Task that inserted from Server A can't be accessed from Server B using command t!all)
 - Disable Update and Delete feature (Because updating task is more time consuming than reinsert task and if you want to delete task just use "X" reaction below respective task)
+- Create datetime verification to ensure every input from user is feasible to be converted to datetime datatype (If the user has the wrong input, the bot will tell the correct format)
