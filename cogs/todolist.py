@@ -48,8 +48,9 @@ class todolist(commands.Cog):
     = return ping
 2. t!all                          
     = return all of registered tasks
-3. t!add <nama> <tanggal> <waktu> 
+3. t!add nama tanggal waktu 
     = If you want to input a task
+    (e.g t!add nama_tugas 25/05/2021 23:59:99)
 4. Delete Task?
     = Just use "X" reaction
 5. t!clear <number>              
@@ -71,7 +72,6 @@ class todolist(commands.Cog):
     @commands.command(pass_context = True)
     async def all(self, ctx):
         id_server = str(ctx.guild.id)
-        print(id_server)
         try:
             with connect(
                 host="localhost",
@@ -114,30 +114,34 @@ class todolist(commands.Cog):
     @commands.command(pass_context = True)
     async def add(self, ctx, nama, tanggal, waktu):
         id_server = str(ctx.guild.id)
-        print(id_server)
         try:
-            with connect(
-                host="localhost",
-                user="root",
-                database ="todolistbot",
-            ) as connection:
-                with connection.cursor() as cursor:
-                    check_query = "SELECT nama FROM task WHERE nama = '{}' AND tanggal = '{}' AND waktu = '{}' AND id_server = '{}';".format(nama, tanggal, waktu, id_server)
-                    cursor.execute(check_query)
-                    result = cursor.fetchall()
-                    if result:
-                        await ctx.send("Data sudah pernah dimasukkan, jika ingin mengubah silahkan gunakan t!update sesuai dengan panduan di dalam t!help")
-                    else:
-                        add_task_query = """
-                    INSERT INTO task (nama, tanggal, waktu, id_server) VALUES 
-                    ("{}", "{}", "{}", "{}");""".format(nama, tanggal, waktu, id_server)
-                        cursor.execute(add_task_query)
-                        connection.commit()
-                        await ctx.send("Data telah dimasukkan")
+            datetime.datetime.strptime(tanggal + " " + waktu, '%d/%m/%Y %H:%M:%S')
+        except:
+            await ctx.send("Format tanggal/waktu salah.\nContoh: t!add nama_tugas 25/05/2021 23:59:99")
+        else:
+            try:
+                with connect(
+                    host="localhost",
+                    user="root",
+                    database ="todolistbot",
+                ) as connection:
+                    with connection.cursor() as cursor:
+                        check_query = "SELECT nama FROM task WHERE nama = '{}' AND tanggal = '{}' AND waktu = '{}' AND id_server = '{}';".format(nama, tanggal, waktu, id_server)
+                        cursor.execute(check_query)
+                        result = cursor.fetchall()
+                        if result:
+                            await ctx.send("Data sudah pernah dimasukkan, jika ingin mengubah silahkan gunakan t!update sesuai dengan panduan di dalam t!help")
+                        else:
+                            add_task_query = """
+                        INSERT INTO task (nama, tanggal, waktu, id_server) VALUES 
+                        ("{}", "{}", "{}", "{}");""".format(nama, tanggal, waktu, id_server)
+                            cursor.execute(add_task_query)
+                            connection.commit()
+                            await ctx.send("Data telah dimasukkan")
 
-        except Error as e:
-            print(e)
-            await ctx.send("Input Gagal")
+            except Error as e:
+                print(e)
+                await ctx.send("Input Gagal")
 
     # @commands.command()
     # async def update(self, ctx, target, choice, newdata):
