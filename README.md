@@ -27,3 +27,9 @@ What's New:
 (You dont have to write t!delete anymore to delete task, just use reaction that will be available everytime you send t!all)
 - User cant add the same task anymore (It means user can't add new task that already inserted before. Bot will compare title, date and time to every task in database)
 - A bug fixed (It appears when the remaining time below 1 days)
+
+18/06/2021
+===
+What's New:
+- Another server can't see the task that inserted from another server (e.g Task that inserted from Server A can't be accessed from Server B using command t!all)
+- Disable Update and Delete feature (Because updating task is more time consuming than reinsert task and if you want to delete task just use "X" reaction below respective task)
