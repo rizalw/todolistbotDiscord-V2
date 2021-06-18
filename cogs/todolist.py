@@ -28,8 +28,8 @@ class todolist(commands.Cog):
                     user="root",
                     database ="todolistbot",
                 ) as connection:
-                    search_query = "DELETE FROM task WHERE nama = '{}' AND tanggal = '{}' AND waktu = '{}' ;"\
-                        .format(data[0][1], data[1][1], data[2][1])
+                    search_query = "DELETE FROM task WHERE nama = '{}' AND tanggal = '{}' AND waktu = '{}' AND id_server = '{}';"\
+                        .format(data[0][1], data[1][1], data[2][1], channel.guild.id)
                     with connection.cursor() as cursor:
                         cursor.execute(search_query)
                         connection.commit()
@@ -37,9 +37,7 @@ class todolist(commands.Cog):
                 await channel.send("```Data masih kosong```")
                 print(e)
             else:
-                msg = await channel.send("```Data berhasil dihapus```")
-                time.sleep(5)
-                await msg.delete()
+                await channel.send("```Data berhasil dihapus```")
         else:
             print("Gagal")
 
@@ -52,16 +50,13 @@ class todolist(commands.Cog):
     = return all of registered tasks
 3. t!add <nama> <tanggal> <waktu> 
     = If you want to input a task
-4. t!update <target tugas> <choice> <new data>
-    = If you want to update a value, before that you must specifiy which tugas you want to edit, 
-    which value do you want to change, and the new data that you want to insert
-5. t!delete <id>                
-    = If you want to delete a task based from it's id
-6. t!clear <number> (default value = 100)               
+4. Delete Task?
+    = Just use "X" reaction
+5. t!clear <number>              
     = If you want to delete messages regardless if you have the permission or not 
     (Use it wisely!!!)
     (Example: t!clear 3, it gonna clear 3 messages above this command)
-7. t!help                         
+6. t!help                         
     = Show this messages```"""
         await ctx.send(context)
 
@@ -73,15 +68,17 @@ class todolist(commands.Cog):
         embed.add_field(name="Ping " + str(ctx.author), value=ping, inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(pass_context = True)
     async def all(self, ctx):
+        id_server = str(ctx.guild.id)
+        print(id_server)
         try:
             with connect(
                 host="localhost",
                 user="root",
                 database ="todolistbot",
             ) as connection:
-                all_query = "SELECT * FROM task ORDER BY id ASC;"
+                all_query = "SELECT * FROM task WHERE id_server = '{}' ORDER BY id ASC;".format(id_server)
                 with connection.cursor() as cursor:
                     cursor.execute(all_query)
                     result = cursor.fetchall()
@@ -101,21 +98,23 @@ class todolist(commands.Cog):
                     sisa = str(tanggalwaktu_deadline - tanggalwaktu_sekarang).split()
                     if len(sisa) == 1:
                         sisa_waktu = sisa[0][0:8]
-                        await ctx.send("**" + "Task " + str(count) + "**\t(id=" + str(content[0]) + ")")
+                        await ctx.send("**" + "Task " + str(count) + "**")
                         data = await ctx.send("```Nama\t\t\t\t\t\t\t: {}\nTanggal Deadline\t\t\t\t: {}\nWaktu Deadline\t\t\t\t  : {}\nSisa Waktu\t\t\t\t\t  : {}```"\
                             .format(content[1], content[2], content[3], sisa_waktu))
                     else:
                         sisa_hari = sisa[0] + " " + sisa[1]
                         sisa_waktu = sisa[2][0:8]
-                        await ctx.send("**" + "Task " + str(count) + "**\t(id=" + str(content[0]) + ")")
+                        await ctx.send("**" + "Task " + str(count) + "**")
                         data = await ctx.send("```Nama\t\t\t\t\t\t\t: {}\nTanggal Deadline\t\t\t\t: {}\nWaktu Deadline\t\t\t\t  : {}\nSisa Waktu\t\t\t\t\t  : {}```"\
                             .format(content[1], content[2], content[3], (sisa_hari + " " + sisa_waktu)))
                     count += 1
                     emoji = "<:deletesign:853677705861267456>"
                     await data.add_reaction(emoji)
 
-    @commands.command()
+    @commands.command(pass_context = True)
     async def add(self, ctx, nama, tanggal, waktu):
+        id_server = str(ctx.guild.id)
+        print(id_server)
         try:
             with connect(
                 host="localhost",
@@ -123,15 +122,15 @@ class todolist(commands.Cog):
                 database ="todolistbot",
             ) as connection:
                 with connection.cursor() as cursor:
-                    check_query = "SELECT nama FROM task WHERE nama = '{}' AND tanggal = '{}' AND waktu = '{}' ;".format(nama, tanggal, waktu)
+                    check_query = "SELECT nama FROM task WHERE nama = '{}' AND tanggal = '{}' AND waktu = '{}' AND id_server = '{}';".format(nama, tanggal, waktu, id_server)
                     cursor.execute(check_query)
                     result = cursor.fetchall()
                     if result:
                         await ctx.send("Data sudah pernah dimasukkan, jika ingin mengubah silahkan gunakan t!update sesuai dengan panduan di dalam t!help")
                     else:
                         add_task_query = """
-                    INSERT INTO task (nama, tanggal, waktu) VALUES 
-                    ("{}", "{}", "{}");""".format(nama, tanggal, waktu)
+                    INSERT INTO task (nama, tanggal, waktu, id_server) VALUES 
+                    ("{}", "{}", "{}", "{}");""".format(nama, tanggal, waktu, id_server)
                         cursor.execute(add_task_query)
                         connection.commit()
                         await ctx.send("Data telah dimasukkan")
@@ -139,48 +138,48 @@ class todolist(commands.Cog):
         except Error as e:
             print(e)
             await ctx.send("Input Gagal")
-            
-    @commands.command()
-    async def update(self, ctx, target, choice, newdata):
-        try:
-            with connect(
-                host="localhost",
-                user="root",
-                database ="todolistbot",
-            ) as connection:
-                if choice == "nama":
-                    alter_query = "UPDATE task SET nama = '{}' where id = {};".format(newdata, target)
-                elif choice == "tanggal":
-                    alter_query = "UPDATE task SET tanggal = '{}' where id = {};".format(newdata, target)
-                elif choice == "waktu":
-                    alter_query = "UPDATE task SET waktu = '{}' where id = {};".format(newdata, target)
-                with connection.cursor() as cursor:
-                    cursor.execute(alter_query)
-                    connection.commit()
-                
-        except Error as e:
-            print(e)
-            await ctx.send("Update Gagal")
-        else:
-            await ctx.send("Data telah diupdate")
 
-    @commands.command()
-    async def delete(ctx, id):
-        try:
-            with connect(
-                host="localhost",
-                user="root",
-                database ="todolistbot",
-            ) as connection:
-                delete_task_query = "DELETE FROM task WHERE id = {};".format(id)
-                with connection.cursor() as cursor:
-                    cursor.execute(delete_task_query)
-                    connection.commit()
-        except Error as e:
-            print(e)
-            await ctx.send("Hapus Gagal")
-        else:
-            await ctx.send("Data telah dihapus")
+    # @commands.command()
+    # async def update(self, ctx, target, choice, newdata):
+    #     try:
+    #         with connect(
+    #             host="localhost",
+    #             user="root",
+    #             database ="todolistbot",
+    #         ) as connection:
+    #             if choice == "nama":
+    #                 alter_query = "UPDATE task SET nama = '{}' where id = {};".format(newdata, target)
+    #             elif choice == "tanggal":
+    #                 alter_query = "UPDATE task SET tanggal = '{}' where id = {};".format(newdata, target)
+    #             elif choice == "waktu":
+    #                 alter_query = "UPDATE task SET waktu = '{}' where id = {};".format(newdata, target)
+    #             with connection.cursor() as cursor:
+    #                 cursor.execute(alter_query)
+    #                 connection.commit()
+                
+    #     except Error as e:
+    #         print(e)
+    #         await ctx.send("Update Gagal")
+    #     else:
+    #         await ctx.send("Data telah diupdate")
+
+    # @commands.command()
+    # async def delete(ctx, id):
+    #     try:
+    #         with connect(
+    #             host="localhost",
+    #             user="root",
+    #             database ="todolistbot",
+    #         ) as connection:
+    #             delete_task_query = "DELETE FROM task WHERE id = {};".format(id)
+    #             with connection.cursor() as cursor:
+    #                 cursor.execute(delete_task_query)
+    #                 connection.commit()
+    #     except Error as e:
+    #         print(e)
+    #         await ctx.send("Hapus Gagal")
+    #     else:
+    #         await ctx.send("Data telah dihapus")
 
     @commands.command()
     async def clear(self, ctx, amount=100):
@@ -233,7 +232,7 @@ class todolist(commands.Cog):
             seconds_until_target = (target_time - now).total_seconds()
             await asyncio.sleep(seconds_until_target)  # Sleep until we hit the target time
             await self.reminder()  # Call the helper function that sends the message
-            tomorrow = datetime.datetime.combine(now.date() + datetime.timedelta(days=1), time(0))
+            tomorrow = datetime.datetime.combine(now.date() + datetime.timedelta(days=1), datetime.time(0))
             seconds = (tomorrow - now).total_seconds()  # Seconds until tomorrow (midnight)
             await asyncio.sleep(seconds)   # Sleep until tomorrow and then the loop will start a new iteration
     
