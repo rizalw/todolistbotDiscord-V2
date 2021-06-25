@@ -3,6 +3,14 @@ Massive improvement in the background. I'm not using txt anymore for storing dat
 
 If you don't know what this apps do. Basicly it's a todolist discord bot than run on python. 
 
+Requirements to run this app:
+- Discord.py library
+- Datetime Library
+- Time Library
+- Mysql.connector Library
+- Asyncio Library
+- OS Library
+
 Changelog
 =
 11/06/2021
