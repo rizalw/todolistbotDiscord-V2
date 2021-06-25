@@ -40,3 +40,8 @@ What's New:
 What's New:
 - Change help command for better clarity
 - Some minor changes
+
+25/06/2021
+===
+What's New:
+- Some minor optimization
