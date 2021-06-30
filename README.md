@@ -1,7 +1,7 @@
 # todolistbotDiscord-V2
 Massive improvement in the background. I'm not using txt anymore for storing data
 
-If you don't know what this apps do. Basicly it's a todolist discord bot than run on python. 
+If you don't know what this apps do. Basicly it's a todolist discord bot that run on python. 
 
 Requirements to run this app:
 - Discord.py library
@@ -10,6 +10,7 @@ Requirements to run this app:
 - Mysql.connector Library
 - Asyncio Library
 - OS Library
+- Xampp, especially MySQL module
 
 Changelog
 =
