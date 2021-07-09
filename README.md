@@ -4,13 +4,13 @@ Massive improvement in the background. I'm not using txt anymore for storing dat
 If you don't know what this apps do. Basicly it's a todolist discord bot that run on python. 
 
 Requirements to run this app:
-- Discord.py library
+- Discord.py library `pip install discord.py`
 - Datetime Library
 - Time Library
-- Mysql.connector Library
-- Asyncio Library
+- Mysql.connector Library `pip install mysql.connector`
+- Asyncio Library `pip install asyncio`
 - OS Library
-- Xampp, especially MySQL module
+- Xampp, especially MySQL module `https://www.apachefriends.org/download.html`
 
 Changelog
 =
